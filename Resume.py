@@ -6,7 +6,7 @@ import pandas as pd
 import prompt
 from cleantext import clean
 
-API_KEY = "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"
+API_KEY = "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"
 
 # Returns the relevant system prompt according to the level
 def getSystemPrompt(level):
