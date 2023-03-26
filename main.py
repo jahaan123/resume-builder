@@ -21,6 +21,8 @@ class Application(tk.Frame):
         self.adjustedResume = ''
         self.font = font.nametofont("TkDefaultFont")
         self.update()
+        self.master.title("GPTExpert - AI Resume Tool (resumepros123)")
+        self.master.iconbitmap("gptexpert.ico")
 
 
     def update_geometry(self):
