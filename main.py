@@ -2,9 +2,9 @@ import Resume
 import tkinter as tk
 import tkinter.filedialog as filedialog
 import tkinter.messagebox as messagebox
+from tkinter import font
 from docx import Document
 from docx.shared import Pt
-import re
 
 class Application(tk.Frame):
     name = city = state = zip_code = phone = email = job = skills = education = ''
@@ -16,9 +16,15 @@ class Application(tk.Frame):
         self.master = master
         self.pack()
         self.create_widgets()
-
-        self.master.geometry("750x750")
+        self.master.geometry(f"750x750")
         self.adjustedResume = ''
+        self.font = font.nametofont("TkDefaultFont")
+        self.update()
+
+
+    def update_geometry(self):
+        # Update the geometry of the window
+        self.master.geometry(f"{self.winfo_reqwidth()+100}x{self.winfo_reqheight()+100}")
 
     def create_widgets(self):
         # create label
@@ -50,59 +56,61 @@ class Application(tk.Frame):
         self.radio3.destroy()
         self.radio4.destroy()
         self.submit.destroy()
-
         # create new widgets for the next form
         tk.Label(self, text="Name:").pack()
-        self.nameB = tk.Entry(self)
+        self.nameB = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.nameB.pack()
 
         tk.Label(self, text="City:").pack()
-        self.cityB = tk.Entry(self)
+        self.cityB = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.cityB.pack()
 
         tk.Label(self, text="State:").pack()
-        self.stateB = tk.Entry(self)
+        self.stateB = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.stateB.pack()
 
         tk.Label(self, text="Zip Code:").pack()
-        self.zip_codeB = tk.Entry(self)
+        self.zip_codeB = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.zip_codeB.pack()
 
         tk.Label(self, text="Phone:").pack()
-        self.phoneB = tk.Entry(self)
+        self.phoneB = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.phoneB.pack()
 
         tk.Label(self, text="Email:").pack()
-        self.emailB = tk.Entry(self)
+        self.emailB = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.emailB.pack()
 
         tk.Label(self, text="Job:").pack()
-        self.jobB = tk.Entry(self)
+        self.jobB = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.jobB.pack()
 
         tk.Label(self, text="Skills:").pack()
-        self.skillsB = tk.Entry(self)
+        self.skillsB = tk.Text(self, height=3, width=30, font=(font, 20), bg="#F9F8F8", wrap="word")
         self.skillsB.pack()
+        scrollb = tk.Scrollbar(self, command=self.skillsB.yview)
+        self.skillsB['yscrollcommand'] = scrollb.set
 
         tk.Label(self, text="Education:").pack()
-        self.educationB = tk.Entry(self)
+        self.educationB = tk.Text(self, height=3, width=30, font=(font, 20), bg="#F9F8F8", wrap="word")
         self.educationB.pack()
 
         # create submit button for the next form
         self.submit2 = tk.Button(self, text="Submit", command=self.submit_choice2)
         self.submit2.pack()
 
+
     def submit_choice2(self):
         # retrieve data from the fields
-        self.name = self.nameB.get()
-        self.city = self.cityB.get()
-        self.state = self.stateB.get()
-        self.zip_code = self.zip_codeB.get()
-        self.phone = self.phoneB.get()
-        self.email = self.emailB.get()
-        self.job = self.jobB.get()
-        self.skills = self.skillsB.get()
-        self.education = self.educationB.get()
+        self.name = self.nameB.get("1.0",'end-1c')
+        self.city = self.cityB.get("1.0",'end-1c')
+        self.state = self.stateB.get("1.0",'end-1c')
+        self.zip_code = self.zip_codeB.get("1.0",'end-1c')
+        self.phone = self.phoneB.get("1.0",'end-1c')
+        self.email = self.emailB.get("1.0",'end-1c')
+        self.job = self.jobB.get("1.0",'end-1c')
+        self.skills = self.skillsB.get("1.0",'end-1c')
+        self.education = self.educationB.get("1.0",'end-1c')
         self.clear_fields()
 
     def clear_fields(self):
@@ -131,6 +139,7 @@ class Application(tk.Frame):
         self.submit3 = tk.Button(self, text="Submit", command=self.submit_choice3)
         self.submit3.pack()
 
+
     def submit_choice3(self):
         self.num = self.choice.get()
         self.label.destroy()
@@ -142,35 +151,34 @@ class Application(tk.Frame):
         self.experience()
 
     def experience(self):
-        tk.Label(self,
-                 text="Write all about the experience then press submit. Once you are done, click create resume.").pack()
+        tk.Label(self, text="Write all about the experience then press submit. Once you are done, click create resume.").pack()
 
         tk.Label(self, text="Company Name:").pack()
-        self.comp = tk.Entry(self)
+        self.comp = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.comp.pack()
 
         tk.Label(self, text="Job Name:").pack()
-        self.job = tk.Entry(self)
+        self.job = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.job.pack()
 
         tk.Label(self, text="Location:").pack()
-        self.location = tk.Entry(self)
+        self.location = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.location.pack()
 
         tk.Label(self, text="Dates:").pack()
-        self.dates = tk.Entry(self)
+        self.dates = tk.Text(self, height=1, width=30, font=(font, 20), bg="#F9F8F8")
         self.dates.pack()
 
         tk.Label(self, text="Company Description:").pack()
-        self.compDesc = tk.Entry(self)
+        self.compDesc = tk.Text(self, height=3, width=30, font=(font, 20), bg="#F9F8F8", wrap="word")
         self.compDesc.pack()
 
         tk.Label(self, text="Job Description:").pack()
-        self.jobDesc = tk.Entry(self)
+        self.jobDesc = tk.Text(self, height=3, width=30, font=(font, 20), bg="#F9F8F8", wrap="word")
         self.jobDesc.pack()
 
         tk.Label(self, text="Achievements:").pack()
-        self.achievements = tk.Entry(self)
+        self.achievements = tk.Text(self, height=3, width=30, font=(font, 20), bg="#F9F8F8", wrap="word")
         self.achievements.pack()
 
         self.submit4 = tk.Button(self, text="Submit", command=self.submit_choice4)
@@ -180,22 +188,23 @@ class Application(tk.Frame):
         self.submit5.pack()
 
 
+
     def submit_choice4(self):
-        compN = self.comp.get()
-        jobN = self.job.get()
-        locationN = self.location.get()
-        datesN = self.dates.get()
-        compDescN = self.compDesc.get()
-        jobDescN = self.jobDesc.get()
-        achievementsN = self.achievements.get()
+        compN = self.comp.get("1.0",'end-1c')
+        jobN = self.job.get("1.0",'end-1c')
+        locationN = self.location.get("1.0",'end-1c')
+        datesN = self.dates.get("1.0",'end-1c')
+        compDescN = self.compDesc.get("1.0",'end-1c')
+        jobDescN = self.jobDesc.get("1.0",'end-1c')
+        achievementsN = self.achievements.get("1.0",'end-1c')
         self.experiences.append([compN, jobN, locationN, datesN, compDescN, jobDescN, achievementsN])
-        self.comp.delete(0, tk.END)
-        self.job.delete(0, tk.END)
-        self.location.delete(0, tk.END)
-        self.dates.delete(0, tk.END)
-        self.compDesc.delete(0, tk.END)
-        self.jobDesc.delete(0, tk.END)
-        self.achievements.delete(0, tk.END)
+        self.comp.delete("1.0","end")
+        self.job.delete("1.0","end")
+        self.location.delete("1.0","end")
+        self.dates.delete("1.0","end")
+        self.compDesc.delete("1.0","end")
+        self.jobDesc.delete("1.0","end")
+        self.achievements.delete("1.0","end")
 
     def clear_all(self):
         for widget in self.winfo_children():
@@ -216,34 +225,40 @@ class Application(tk.Frame):
         elif self.resumeLevel == "Executive Level":
             self.cv = Resume.executiveLevel(self.name, self.city, self.state, self.zip_code, self.phone, self.email,
                                             self.job, self.skills, self.education, self.experiences)
-        pattern = r'\\u[^"]*'
+
         self.resume = tk.Label(self, wraplength=500, text=self.cv).pack()
         self.option = tk.Label(self, text="Write any adjustments you would like in the box below, if none then just press save.")
-
-        self.adjustments = tk.Entry(self, width=150)
+        self.option.pack()
+        self.adjustments = tk.Text(self, height=3, width=30, font=(font, 20), bg="#F9F8F8", wrap="word")
         self.adjustments.pack()
         self.adjust = tk.Button(self, text="Rewrite", command=self.rewrite_resume)
         self.adjust.pack()
 
         self.save = tk.Button(self, text="Save", command=self.save_resume)
         self.save.pack()
+        self.update()
+        self.after(0, self.update_geometry)
+
 
     def new_resume_show(self, res):
         self.clear_all()
-        pattern = r'\\u[^"]*'
+
         self.resume = tk.Label(self, wraplength=700, text=res).pack()
         self.option = tk.Label(self, text="Write any new adjustments you would like in the box below, if none then just press save.")
 
-        self.adjustments = tk.Entry(self, width=150)
+        self.adjustments = tk.Text(self, height=5, width=40, font=(font, 20), bg="#F9F8F8", wrap="word")
         self.adjustments.pack()
         self.adjust = tk.Button(self, text="Rewrite", command=self.rewrite_resume)
         self.adjust.pack()
 
         self.save = tk.Button(self, text="Save", command=self.save_resume)
         self.save.pack()
+        self.update()
+        self.after(0, self.update_geometry)
+
 
     def rewrite_resume(self):
-        self.toAdjust = self.adjustments.get()
+        self.toAdjust = self.adjustments.get("1.0",'end-1c')
         self.adjustedResume = Resume.adjust(self.toAdjust, self.cv)
         self.new_resume_show(self.adjustedResume)
 
