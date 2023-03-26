@@ -1,73 +1,53 @@
+import json
+
 import openai
 import pandas as pd
+
 import prompt
-import json
-from dotenv import load_dotenv
-import os
+from cleantext import clean
 
-load_dotenv()
-openai.api_key = os.getenv('OPENAI_API_KEY')
+API_KEY = "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"
 
-def getvariables():
-    print("First input your general information below.\n")
-    name = input("Name: ")
-    city = input("City: ")
-    state = input("State: ")
-    zip_code = input("Zip Code: ")
-    phone = input("Phone Number: ")
-    email = input("Email: ")
-    job = input("Job Goal: ")
-    print("Next please list all relavant skills you have below:")
-    skills = input()
-    print(
-        "Now list your education in the following format:\ncollege or high school, major, any other information (optional), year. Separate each education with a .")
-    education = input()
-    return name, city, state, zip_code, phone, email, job, skills, education
+# Returns the relevant system prompt according to the level
+def getSystemPrompt(level):
+    if level=="entry":
+        return "As an experienced and accredited resume writer, your specialty is crafting well-written Entry Level resumes that effectively showcase a candidate\'s skills and experience. Your task is to write a compelling Entry Level resume for a someone who is seeking a job.\r\n\r\nYour response should clearly highlight the candidate\'s relevant education, internships, volunteer work, or other experiences that demonstrate their qualifications for the position they are applying for. The resume should be formatted in a clear and professional manner with attention to detail, spelling, and grammar, and if any field is not provided (such as education) then leave it out of the resume and do not write it.\r\n\r\nPlease note that you should highlight key skills and achievements that align with the requirements of the position. "
+    else:
+        return f"As an experienced and accredited resume writer, your task is to create a high-quality {level} level resume that will effectively showcase the client\'s skills and experience. Your goal is to craft a compelling document that highlights the client\'s achievements and qualifications in a clear and concise manner.\r\n\r\nYour final product should be well-written, error-free, and tailored specifically to the client\'s needs. It should include a professional summary or objective statement, a list of relevant skills and achievements, detailed descriptions of previous job roles highlighting specific accomplishments related to each role, education history if applicable, certifications or licenses earned if applicable.\r\n\r\nPlease note that while you specialize in writing Mid-Level resumes for clients who want jobs in large companies; your response should still allow for flexibility in terms of industries or positions desired by the client, and if any field is not provided (such as education) then leave it out of the resume and do not write it.."
 
 
-def experiences():
-    exp = []
-    num = input("How many experiences do you have (max 4): ")
-    for i in range(0, int(num)):
-        company = input("Company Name: ")
-        job = input("Job Title: ")
-        location = input("Location: ")
-        dates = input("Dates: ")
-        comp_desc = input("Company description: ")
-        job_desc = input("Job Description: ")
-        achievements = input("Achievements: ")
-        exp.append([company, job, location, dates, comp_desc, job_desc, achievements])
-    return exp
-
+# This function takes a level parameter and returns two lists of prompts and two lists of completions from an Excel file named "Resume.xlsx"
+# The prompts and completions correspond to the specified level.
+# The function first reads the Excel file using pandas and filters the data by the specified level.
+# It then extracts the prompts and completions from the filtered data and stores them in separate lists.
+# Finally, the function returns the two lists of prompts and two lists of completions.
 def prompts_completion(level):
+    # Read the Excel file using pandas
     data = pd.read_excel(io="Resume.xlsx")
+
+    # Filter the data by the specified level and extract the prompts and completions
     x = data[data['Level'] == level]
     prompts1 = [x.loc[x.index[0], 'Prompt 1'], x.loc[x.index[1], 'Prompt 1']]
     completions1 = [x.loc[x.index[0], 'Completion 1'], x.loc[x.index[1], 'Completion 1']]
     prompts2 = [x.loc[x.index[0], 'Prompt 2'], x.loc[x.index[1], 'Prompt 2']]
     completions2 = [x.loc[x.index[0], 'Completion 2'], x.loc[x.index[1], 'Completion 2']]
+
+    # Return the two lists of prompts and two lists of completions
     return prompts1, prompts2, completions1, completions2
 
-def level():
-    print("Please select the level of resume you want to create as the number option:")
-    print("1) Entry Level")
-    print("2) Mid Level")
-    print("3) Senior Level")
-    print("4) Executive Level")
-    choice = input()
-    return choice
 
-
+# Entry level resume generation
 def entryLevel(name, city, state, zip_code, phone, email, job, skills, education, experiences):
     data = pd.read_excel(io="Resume.xlsx")
     x = data[data['Level'] == "Entry"]
     prompts = [x.loc[x.index[0], 'Prompt 1'], x.loc[x.index[1], 'Prompt 1']]
     completions = [x.loc[x.index[0], 'Completion 1'], x.loc[x.index[1], 'Completion 1']]
     resume = openai.ChatCompletion.create(
+        api_key=API_KEY,
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an accredited resume writer. You have been writing resumes for over 20 years and have landed your clients jobs in some of the world's largest companies. You specialize in writing Entry Level resumes that are short and concise."},
+             "content": getSystemPrompt("entry")},
             {"role": "user", "content": prompts[0]},
             {"role": "assistant", "content": completions[0]},
             {"role": "user", "content": prompts[1]},
@@ -75,118 +55,129 @@ def entryLevel(name, city, state, zip_code, phone, email, job, skills, education
             {"role": "user", "content": json.dumps(
                 prompt.createEntry(name, city, state, zip_code, phone, email, job, skills, education, experiences))}
         ],
-        temperature = 0.6
+        temperature=0.6
     )
-    return resume["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "")
+    return clean(resume["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", ""), lower=False)
 
 
+# Mid level resume generation
 def midLevel(name, city, state, zip_code, phone, email, job, skills, education, experiences):
     prompts1, prompts2, completions1, completions2 = prompts_completion("Mid")
     basic = openai.ChatCompletion.create(
+        api_key=API_KEY,
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an accredited resume writer. You have been writing resumes for over 20 years and have landed your clients jobs in some of the world's largest companies. You specialize in writing Mid Level resumes that are short and concise."},
+             "content": getSystemPrompt("mid")},
             {"role": "user", "content": prompts1[0]},
             {"role": "assistant", "content": completions1[0]},
             {"role": "user", "content": prompts1[1]},
             {"role": "assistant", "content": completions1[1]},
             {"role": "user",
              "content": json.dumps(prompt.create(name, city, state, zip_code, phone, email, job, skills, education))}],
-        temperature = 0.6
+        temperature=0.6
     )
     experiences = openai.ChatCompletion.create(
+        api_key=API_KEY,
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an accredited resume writer. You have been writing resumes for over 20 years and have landed your clients jobs in some of the world's largest companies. You specialize in writing Mid Level resumes that are short and concise."},
+             "content": getSystemPrompt("mid")},
             {"role": "user", "content": prompts2[0]},
             {"role": "assistant", "content": completions2[0]},
             {"role": "user", "content": prompts2[1]},
             {"role": "assistant", "content": completions2[1]},
             {"role": "user", "content": json.dumps(prompt.expCreate(experiences))}],
-        temperature = 0.4
+        temperature=0.4
     )
     basic = basic["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "")
     experiences = experiences["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "")
     resume = basic + experiences
-    return resume
+    return clean(resume, lower=False)
 
-
+# Senior level resume generation
 def seniorLevel(name, city, state, zip_code, phone, email, job, skills, education, experiences):
     prompts1, prompts2, completions1, completions2 = prompts_completion("Senior")
     basic = openai.ChatCompletion.create(
+        api_key=API_KEY,
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an accredited resume writer. You have been writing resumes for over 20 years and have landed your clients jobs in some of the world's largest companies. You specialize in writing Senior Level resumes that are short and concise."},
+             "content": getSystemPrompt("senior")},
             {"role": "user", "content": prompts1[0]},
             {"role": "assistant", "content": completions1[0]},
             {"role": "user", "content": prompts1[1]},
             {"role": "assistant", "content": completions1[1]},
             {"role": "user",
              "content": json.dumps(prompt.create(name, city, state, zip_code, phone, email, job, skills, education))}],
-        temperature = 0.6
+        temperature=0.6
     )
     experiences = openai.ChatCompletion.create(
+        api_key=API_KEY,
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an accredited resume writer. You have been writing resumes for over 20 years and have landed your clients jobs in some of the world's largest companies. You specialize in writing Senior Level resumes that are short and concise."},
+             "content": getSystemPrompt("senior")},
             {"role": "user", "content": prompts2[0]},
             {"role": "assistant", "content": completions2[0]},
             {"role": "user", "content": prompts2[1]},
             {"role": "assistant", "content": completions2[1]},
             {"role": "user", "content": json.dumps(prompt.expCreate(experiences))}],
-        temperature = 0.4
+        temperature=0.4
     )
-    basic = basic["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "").replace(r".!\application.!entry11", "").replace(r".!application.!entry11", "")
-    experiences = experiences["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "").replace(r"\u", "")
+    basic = basic["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "").replace(
+        r".!\application.!entry11", "").replace(r".!application.!entry11", "")
+    experiences = experiences["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "").replace(r"\u",
+                                                                                                                 "")
     resume = basic + experiences
-    return resume.replace(r"\xa0", "")
+    return clean(resume, lower=False)
 
-
+# Executive level resume generation
 def executiveLevel(name, city, state, zip_code, phone, email, job, skills, education, experiences):
     prompts1, prompts2, completions1, completions2 = prompts_completion("Executive")
     basic = openai.ChatCompletion.create(
+        api_key=API_KEY,
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an accredited resume writer. You have been writing resumes for over 20 years and have landed your clients jobs in some of the world's largest companies. You specialize in writing Executive Level resumes that are short and concise."},
+             "content": getSystemPrompt("executive")},
             {"role": "user", "content": prompts1[0]},
             {"role": "assistant", "content": completions1[0]},
             {"role": "user", "content": prompts1[1]},
             {"role": "assistant", "content": completions1[1]},
             {"role": "user",
              "content": json.dumps(prompt.create(name, city, state, zip_code, phone, email, job, skills, education))}],
-        temperature = 0.4
+        temperature=0.4
     )
     experiences = openai.ChatCompletion.create(
+        api_key=API_KEY,
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an accredited resume writer. You have been writing resumes for over 20 years and have landed your clients jobs in some of the world's largest companies. You specialize in writing Executive Level resumes that are short and concise."},
+             "content": getSystemPrompt("executive")},
             {"role": "user", "content": prompts2[0]},
             {"role": "assistant", "content": completions2[0]},
             {"role": "user", "content": prompts2[1]},
             {"role": "assistant", "content": completions2[1]},
             {"role": "user", "content": json.dumps(prompt.expCreate(experiences))}],
-        temperature = 0.4
+        temperature=0.4
     )
     basic = basic["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "")
     experiences = experiences["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "")
     resume = basic + experiences
-    return resume
+    return clean(resume, lower=False)
 
+# Adjust resume generation
 def adjust(prompt, resume):
     newResume = openai.ChatCompletion.create(
+        api_key=API_KEY,
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system",
-             "content": "You are an accredited resume writer. You have been writing resumes for over 20 years and have landed your clients jobs in some of the world's largest companies. Edit the current resume according to the prompt"},
-            {"role": "user", "content": resume + " And this is the prompt " + prompt}
-            ],
-        temperature = 0.4
+             "content": "As an experienced and accredited resume writer, your task is to edit a client's existing resume according to their request. Your goal fulfills the client's request exactly by updating the provided resume while maintaining everything else as it was."},
+            {"role": "user", "content": f"Here is the users resume:\n{resume}\n\nHere is the users request:{prompt}"}
+        ],
+        temperature=0.4
     )
 
-    return newResume["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", "")
+    return clean(newResume["choices"][0]["message"]["content"].replace("\\n", "\n").replace("\r", ""), lower=False)
